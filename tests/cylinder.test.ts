@@ -18,7 +18,7 @@ describe('cylinder', () => {
     expect(out).toHaveLength(2)
     const first = out[0].contours[0][0]
     expect(first.x).toBeCloseTo(0)
-    expect(first.z).toBeCloseTo(200)
+    expect(first.z).toBeCloseTo(-200)
     for (const g of out) for (const c of g.contours) for (const pt of c) {
       expect(Math.hypot(pt.x, pt.z)).toBeCloseTo(200, 5)
     }

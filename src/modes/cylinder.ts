@@ -48,7 +48,7 @@ export const cylinder: Mode = {
               return {
                 x: r * Math.sin(theta),
                 y: yBase + pt.y * (p.yScale as number) + (p.waveAmp as number) * Math.sin(wave(theta)),
-                z: r * Math.cos(theta),
+                z: -r * Math.cos(theta),
               }
             }),
           )

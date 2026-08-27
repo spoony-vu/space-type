@@ -31,7 +31,7 @@ describe('helix', () => {
     const p = { ...defaultParams(helix), turns: 3, spin: 0 }
     const out = helix.build([line], p, 0)
     const first = out[0].contours[0][0]
-    expect(Math.atan2(first.x, first.z)).toBeCloseTo(0)
+    expect(Math.atan2(first.x, -first.z)).toBeCloseTo(0)
   })
 
   it('is empty for empty input', () => {

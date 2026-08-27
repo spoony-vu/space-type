@@ -32,11 +32,12 @@ export const extrusion: Mode = {
     const out: Glyph3D[] = []
     real.forEach((line, li) => {
       const yBase = (li - (real.length - 1) / 2) * (p.lineGap as number) + FONT_SIZE * 0.35
+      const kFar = CAM_DIST / (CAM_DIST + Math.max(D, 0))
       for (const g of line.glyphs) {
         if (!g.contours.length) continue
-        for (let s = steps - 1; s >= 0; s--) {
-          const z = (s / (steps - 1)) * D
-          const k = CAM_DIST / (CAM_DIST + Math.max(z, -CAM_DIST + 10))
+        for (let s = 0; s < steps; s++) {
+          // uniform steps in screen scale, not depth, so the smear looks continuous
+          const k = kFar + (1 - kFar) * (s / (steps - 1))
           const contours = g.contours.map(c =>
             c.map(pt => ({
               x: vpx + ((g.x - line.width / 2 + pt.x) * sc - vpx) * k,
