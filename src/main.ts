@@ -7,6 +7,7 @@ import { cylinder } from './modes/cylinder'
 import { helix } from './modes/helix'
 import { depthfield } from './modes/depthfield'
 import { extrusion } from './modes/extrusion'
+import { lissajous } from './modes/lissajous'
 import { defaultParams, type Mode } from './modes/mode'
 import { buildControls, syncControls } from './ui/controls'
 import { FONTS, fontById } from './ui/fonts'
@@ -15,7 +16,7 @@ import { downloadBlob, renderPNG, type DrawScene } from './export/png'
 import { recordWebM } from './export/video'
 import { exportFrames } from './export/frames'
 
-const MODES: Mode[] = [cylinder, helix, depthfield, extrusion]
+const MODES: Mode[] = [cylinder, helix, lissajous, depthfield, extrusion]
 const MAX_POINTS = 140000
 const PLACEHOLDER = 'TYPE SOMETHING'
 
@@ -57,7 +58,7 @@ function reshape(): void {
   if (!fontStore.ready) return
   const text = state.text.trim() || PLACEHOLDER
   const m = mode()
-  if (m.id === 'cylinder' || m.id === 'helix') {
+  if (m.id === 'cylinder' || m.id === 'helix' || m.id === 'lissajous') {
     shaped = [fontStore.shapeLine(text.replace(/\n+/g, '//'), FONT_SIZE)]
   } else {
     shaped = text
