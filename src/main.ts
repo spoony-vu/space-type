@@ -10,7 +10,7 @@ import { extrusion } from './modes/extrusion'
 import { lissajous } from './modes/lissajous'
 import { defaultParams, type Mode } from './modes/mode'
 import { mountDialPanel } from './ui/dialpanel'
-import { FONTS, fontById } from './ui/fonts'
+import { fontById } from './ui/fonts'
 import { decodeState, encodeState, type AppState } from './state'
 import { downloadBlob, renderPNG, type DrawScene } from './export/png'
 import { recordWebM } from './export/video'
@@ -18,7 +18,7 @@ import { exportFrames } from './export/frames'
 
 const MODES: Mode[] = [cylinder, helix, lissajous, depthfield, extrusion]
 const MAX_POINTS = 140000
-const PLACEHOLDER = 'TYPE SOMETHING'
+const PLACEHOLDER = 'TYPE-SOMETHING'
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!
 const canvas = $<HTMLCanvasElement>('#stage')
@@ -29,11 +29,13 @@ function freshState(): AppState {
   for (const m of MODES) params[m.id] = defaultParams(m)
   return {
     mode: 'cylinder',
-    text: 'I-TRY-ALL-THINGS;-I-ACHIEVE-WHAT-I-CAN.//',
+    text: 'TYPE-SOMETHING',
     caption: '',
     fontId: 'archivo-black',
     fg: '#111111',
     bg: '#ffffff',
+    shade: '#9a9a9a',
+    depthTint: 0.55,
     renderMode: 'fill',
     weight: 2,
     camera: { rotX: 0.14, rotY: 0, rotZ: 0, zoom: 1 },
@@ -58,13 +60,13 @@ function reshape(): void {
   if (!fontStore.ready) return
   const text = state.text.trim() || PLACEHOLDER
   const m = mode()
-  if (m.id === 'cylinder' || m.id === 'helix' || m.id === 'lissajous') {
-    shaped = [fontStore.shapeLine(text.replace(/\n+/g, '//'), FONT_SIZE)]
-  } else {
+  if (m.id === 'depthfield' || m.id === 'extrusion') {
     shaped = text
-      .split('\n')
+      .split(/[\n|]/)
       .filter(l => l.trim())
       .map(l => fontStore.shapeLine(l, FONT_SIZE))
+  } else {
+    shaped = [fontStore.shapeLine(text.replace(/[\n|]+/g, '//'), FONT_SIZE)]
   }
   shapedCaption = state.caption.trim() ? fontStore.shapeLine(state.caption.trim(), FONT_SIZE * 0.14) : null
 }
@@ -82,7 +84,14 @@ function scheduleHash(): void {
 const drawScene: DrawScene = (c, w, h, time) => {
   // world units are tuned for a ~900px-tall viewport; scale zoom so framing is size-independent
   const cam = { ...defaultCamera(), ...state.camera, zoom: state.camera.zoom * (h / 900) }
-  const style: RenderStyle = { mode: state.renderMode, weight: state.weight, fg: state.fg, bg: state.bg }
+  const style: RenderStyle = {
+    mode: state.renderMode,
+    weight: state.weight,
+    fg: state.fg,
+    bg: state.bg,
+    shade: state.shade,
+    depthTint: state.depthTint,
+  }
   const glyphs = decimate(mode().build(shaped, params(), time), MAX_POINTS)
   renderFrame(c, w, h, projectGlyphs(glyphs, cam, w / 2, h / 2), style)
   if (state.mode === 'depthfield' && shapedCaption) {
@@ -105,9 +114,11 @@ const drawScene: DrawScene = (c, w, h, time) => {
   }
 }
 
-let viewW = 0
-let viewH = 0
+let viewW = 1280
+let viewH = 800
 function resize(): void {
+  // hidden/backgrounded windows report 0x0; keep the last real size
+  if (window.innerWidth < 2 || window.innerHeight < 2) return
   const dpr = Math.min(window.devicePixelRatio || 1, 2)
   viewW = window.innerWidth
   viewH = window.innerHeight
@@ -126,146 +137,104 @@ function tick(): void {
 }
 requestAnimationFrame(tick)
 
-// ---------- UI wiring ----------
+// ---------- UI wiring (everything lives in the DialKit panel) ----------
 
-const dial = mountDialPanel(state, mode(), scheduleHash)
-
-function rebuildPresets(): void {
-  const box = $('#presets')
-  box.innerHTML = ''
-  for (const preset of mode().presets) {
-    const b = document.createElement('button')
-    b.textContent = preset.name
-    b.addEventListener('click', () => {
-      const { fg, bg, ...rest } = preset.values
-      Object.assign(params(), rest)
-      if (typeof fg === 'string') state.fg = fg
-      if (typeof bg === 'string') state.bg = bg
-      dial.apply()
-      scheduleHash()
-    })
-    box.appendChild(b)
-  }
-}
-
-function rebuildModeTabs(): void {
-  const box = $('#modes')
-  box.innerHTML = ''
-  for (const m of MODES) {
-    const b = document.createElement('button')
-    b.textContent = m.name
-    if (m.id === state.mode) b.classList.add('active')
-    b.addEventListener('click', () => {
-      state.mode = m.id
-      reshape()
-      dial.setMode(mode())
-      rebuildPresets()
-      rebuildModeTabs()
-      scheduleHash()
-    })
-    box.appendChild(b)
-  }
-}
-
-const textEl = $<HTMLTextAreaElement>('#text')
-textEl.value = state.text
-textEl.addEventListener('input', () => {
-  state.text = textEl.value
-  reshape()
-  scheduleHash()
-})
-
-const captionEl = $<HTMLInputElement>('#caption')
-captionEl.value = state.caption
-captionEl.addEventListener('input', () => {
-  state.caption = captionEl.value
-  reshape()
-  scheduleHash()
-})
-
-const fontSelect = $<HTMLSelectElement>('#font-select')
-for (const f of FONTS) {
-  const o = document.createElement('option')
-  o.value = f.id
-  o.textContent = f.name
-  fontSelect.appendChild(o)
-}
-const uploadOption = document.createElement('option')
-uploadOption.value = '__uploaded'
-uploadOption.textContent = '(uploaded)'
-uploadOption.hidden = true
-fontSelect.appendChild(uploadOption)
-fontSelect.value = fontById(state.fontId).id
-
+const fileInput = $<HTMLInputElement>('#font-file')
+const statusEl = $('#export-status')
 const fontError = $('#font-error')
+
 async function loadFont(id: string): Promise<void> {
   fontError.textContent = ''
   try {
     await fontStore.loadUrl(fontById(id).url)
-    state.fontId = id
     reshape()
-    scheduleHash()
   } catch (e) {
     fontError.textContent = `could not load font (${(e as Error).message})`
   }
 }
-fontSelect.addEventListener('change', () => loadFont(fontSelect.value))
 
-$<HTMLInputElement>('#font-file').addEventListener('change', async e => {
+let shownMode = state.mode
+let shownFontId = state.fontId
+let shownText = state.text
+let shownCaption = state.caption
+
+function onDialChange(): void {
+  if (state.mode !== shownMode) {
+    shownMode = state.mode
+    reshape()
+    dial.setMode(mode())
+  }
+  if (state.fontId !== shownFontId) {
+    shownFontId = state.fontId
+    loadFont(state.fontId)
+  }
+  if (state.text !== shownText || state.caption !== shownCaption) {
+    shownText = state.text
+    shownCaption = state.caption
+    reshape()
+  }
+  scheduleHash()
+}
+
+async function onDialAction(path: string): Promise<void> {
+  if (path === 'Upload font') {
+    fileInput.click()
+  } else if (path === 'Style.Invert') {
+    ;[state.fg, state.bg] = [state.bg, state.fg]
+    dial.apply()
+    scheduleHash()
+  } else if (path.startsWith('Presets.')) {
+    const m = mode()
+    const preset = m.presets.find(pr => pr.name === path.slice('Presets.'.length))
+    if (!preset) return
+    const { fg, bg, ...rest } = preset.values
+    state.params[m.id] = { ...defaultParams(m), ...rest }
+    if (typeof fg === 'string') state.fg = fg
+    if (typeof bg === 'string') state.bg = bg
+    dial.apply()
+    scheduleHash()
+  } else if (path === 'Export.png') {
+    statusEl.textContent = 'rendering png...'
+    try {
+      downloadBlob(await renderPNG(drawScene, viewW, viewH, 3, now()), 'space-type.png')
+      statusEl.textContent = ''
+    } catch (e) {
+      statusEl.textContent = `png failed (${(e as Error).message})`
+    }
+  } else if (path === 'Export.webm') {
+    const p = recordWebM(canvas, 6)
+    if (!p) {
+      statusEl.textContent = 'webm not supported here, use frames'
+      return
+    }
+    statusEl.textContent = 'recording 6s...'
+    downloadBlob(await p, 'space-type.webm')
+    statusEl.textContent = ''
+  } else if (path === 'Export.frames') {
+    try {
+      const blob = await exportFrames(drawScene, viewW, viewH, 4, 30, 2, now(), (d, t) => {
+        statusEl.textContent = `frame ${d}/${t}`
+      })
+      downloadBlob(blob, 'space-type-frames.zip')
+      statusEl.textContent = ''
+    } catch (e) {
+      statusEl.textContent = `frames failed (${(e as Error).message})`
+    }
+  }
+}
+
+const dial = mountDialPanel(state, MODES, mode(), onDialChange, onDialAction)
+
+fileInput.addEventListener('change', async e => {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
   fontError.textContent = ''
   try {
     fontStore.parse(await file.arrayBuffer())
-    fontSelect.value = '__uploaded'
     reshape()
   } catch {
     fontError.textContent = 'could not parse that font file'
   }
 })
 
-$('#invert').addEventListener('click', () => {
-  ;[state.fg, state.bg] = [state.bg, state.fg]
-  dial.apply()
-  scheduleHash()
-})
-
-const statusEl = $('#export-status')
-
-$('#export-png').addEventListener('click', async () => {
-  statusEl.textContent = 'rendering png...'
-  try {
-    const blob = await renderPNG(drawScene, viewW, viewH, 3, now())
-    downloadBlob(blob, 'space-type.png')
-    statusEl.textContent = ''
-  } catch (e) {
-    statusEl.textContent = `png failed (${(e as Error).message})`
-  }
-})
-
-$('#export-webm').addEventListener('click', async () => {
-  const p = recordWebM(canvas, 6)
-  if (!p) {
-    statusEl.textContent = 'webm not supported here, use frames'
-    return
-  }
-  statusEl.textContent = 'recording 6s...'
-  downloadBlob(await p, 'space-type.webm')
-  statusEl.textContent = ''
-})
-
-$('#export-frames').addEventListener('click', async () => {
-  try {
-    const blob = await exportFrames(drawScene, viewW, viewH, 4, 30, 2, now(), (d, t) => {
-      statusEl.textContent = `frame ${d}/${t}`
-    })
-    downloadBlob(blob, 'space-type-frames.zip')
-    statusEl.textContent = ''
-  } catch (e) {
-    statusEl.textContent = `frames failed (${(e as Error).message})`
-  }
-})
-
-rebuildPresets()
-rebuildModeTabs()
 loadFont(state.fontId)

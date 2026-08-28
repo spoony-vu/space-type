@@ -13,6 +13,18 @@ export interface RenderStyle {
   weight: number
   fg: string
   bg: string
+  shade: string
+  depthTint: number
+}
+
+export function mixHex(a: string, b: string, t: number): string {
+  const pa = parseInt(a.slice(1), 16)
+  const pb = parseInt(b.slice(1), 16)
+  const ch = (sa: number, sb: number) => Math.round(sa + (sb - sa) * t)
+  const r = ch((pa >> 16) & 255, (pb >> 16) & 255)
+  const g = ch((pa >> 8) & 255, (pb >> 8) & 255)
+  const bl = ch(pa & 255, pb & 255)
+  return `rgb(${r},${g},${bl})`
 }
 
 export function projectGlyphs(glyphs: Glyph3D[], cam: Camera, cx: number, cy: number): ScreenGlyph[] {
@@ -35,7 +47,17 @@ export function renderFrame(ctx: CanvasRenderingContext2D, w: number, h: number,
   ctx.fillStyle = style.bg
   ctx.fillRect(0, 0, w, h)
   const sorted = [...glyphs].sort((a, b) => b.depth - a.depth)
+  let minD = Infinity
+  let maxD = -Infinity
   for (const g of sorted) {
+    if (g.depth < minD) minD = g.depth
+    if (g.depth > maxD) maxD = g.depth
+  }
+  const range = maxD - minD
+  const tint = style.depthTint ?? 0
+  for (const g of sorted) {
+    const color =
+      tint > 0 && range > 1e-6 ? mixHex(style.fg, style.shade, ((g.depth - minD) / range) * tint) : style.fg
     ctx.beginPath()
     for (const c of g.contours) {
       if (c.length < 2) continue
@@ -44,10 +66,10 @@ export function renderFrame(ctx: CanvasRenderingContext2D, w: number, h: number,
       ctx.closePath()
     }
     if (style.mode === 'fill') {
-      ctx.fillStyle = style.fg
+      ctx.fillStyle = color
       ctx.fill('evenodd')
     } else {
-      ctx.strokeStyle = style.fg
+      ctx.strokeStyle = color
       ctx.lineWidth = style.weight
       ctx.lineJoin = 'round'
       ctx.stroke()

@@ -8,6 +8,8 @@ const state: AppState = {
   fontId: 'archivo-black',
   fg: '#111111',
   bg: '#ffffff',
+  shade: '#9a9a9a',
+  depthTint: 0.55,
   renderMode: 'fill',
   weight: 2,
   camera: { rotX: 0.14, rotY: 0, rotZ: 0, zoom: 1 },

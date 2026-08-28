@@ -7,28 +7,13 @@
   </head>
   <body>
     <canvas id="stage"></canvas>
-    <header id="topbar">
-      <button id="export-png">Export PNG</button>
-      <button id="export-webm">Export WebM</button>
-      <button id="export-frames">Export frames</button>
-      <span id="export-status"></span>
-    </header>
-    <section id="info">
+    <header id="brand">
       <h1>SPACE TYPE</h1>
       <div class="sub">_kinetic type generator</div>
-      <textarea id="text" rows="3" spellcheck="false"></textarea>
-      <input id="caption" type="text" placeholder="caption (depth field)" spellcheck="false" />
-      <div class="row">
-        <select id="font-select"></select>
-        <label class="upload">UPLOAD<input id="font-file" type="file" accept=".ttf,.otf,.woff" /></label>
-        <button id="invert">INVERT</button>
-      </div>
+      <div id="export-status"></div>
       <div id="font-error" class="error"></div>
-    </section>
-    <footer id="bottombar">
-      <div id="modes"></div>
-      <div id="presets"></div>
-    </footer>
+    </header>
+    <input id="font-file" type="file" accept=".ttf,.otf,.woff" hidden />
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

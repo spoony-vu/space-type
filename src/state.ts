@@ -7,6 +7,8 @@ export interface AppState {
   fontId: string
   fg: string
   bg: string
+  shade: string
+  depthTint: number
   renderMode: 'fill' | 'stroke'
   weight: number
   camera: { rotX: number; rotY: number; rotZ: number; zoom: number }

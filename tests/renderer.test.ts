@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { projectGlyphs, renderFrame, decimate, countPoints, type Glyph3D, type ScreenGlyph } from '../src/engine/renderer'
+import { projectGlyphs, renderFrame, decimate, countPoints, mixHex, type Glyph3D, type ScreenGlyph } from '../src/engine/renderer'
 import { defaultCamera } from '../src/engine/camera'
 
 function square(z: number): Glyph3D {
@@ -34,7 +34,7 @@ describe('renderFrame', () => {
     const near: ScreenGlyph = { contours: [[{ x: 1, y: 0 }, { x: 2, y: 0 }]], depth: -100 }
     const far: ScreenGlyph = { contours: [[{ x: 99, y: 0 }, { x: 98, y: 0 }]], depth: 100 }
     const ctx = stubCtx()
-    renderFrame(ctx, 100, 100, [near, far], { mode: 'fill', weight: 2, fg: '#000', bg: '#fff' })
+    renderFrame(ctx, 100, 100, [near, far], { mode: 'fill', weight: 2, fg: '#000000', bg: '#ffffff', shade: '#888888', depthTint: 0 })
     expect(ctx.calls[0]).toBe('fillRect')
     const firstMove = ctx.calls.findIndex(c => c.startsWith('moveTo'))
     expect(ctx.calls[firstMove]).toBe('moveTo:99')
@@ -44,9 +44,54 @@ describe('renderFrame', () => {
 
   it('strokes in stroke mode', () => {
     const ctx = stubCtx()
-    renderFrame(ctx, 100, 100, [{ contours: [[{ x: 0, y: 0 }, { x: 1, y: 1 }]], depth: 0 }], { mode: 'stroke', weight: 2, fg: '#000', bg: '#fff' })
+    renderFrame(ctx, 100, 100, [{ contours: [[{ x: 0, y: 0 }, { x: 1, y: 1 }]], depth: 0 }], { mode: 'stroke', weight: 2, fg: '#000000', bg: '#ffffff', shade: '#888888', depthTint: 0 })
     expect(ctx.calls).toContain('stroke')
     expect(ctx.calls).not.toContain('fill')
+  })
+})
+
+describe('mixHex', () => {
+  it('interpolates between two hex colors', () => {
+    expect(mixHex('#000000', '#ffffff', 0)).toBe('rgb(0,0,0)')
+    expect(mixHex('#000000', '#ffffff', 1)).toBe('rgb(255,255,255)')
+    expect(mixHex('#000000', '#ffffff', 0.5)).toBe('rgb(128,128,128)')
+  })
+})
+
+describe('depth tint', () => {
+  function tintCtx() {
+    const fills: string[] = []
+    const ctx = {
+      _fill: '',
+      set fillStyle(v: string) { this._fill = v },
+      get fillStyle() { return this._fill },
+      strokeStyle: '', lineWidth: 0, lineJoin: '',
+      fillRect: () => {},
+      beginPath: () => {},
+      moveTo: () => {},
+      lineTo: () => {},
+      closePath: () => {},
+      fill: function (this: { _fill: string }) { fills.push(this._fill) },
+      stroke: () => {},
+    }
+    return { ctx: ctx as unknown as CanvasRenderingContext2D, fills }
+  }
+
+  it('shades far glyphs toward the shade color, keeps near glyphs at fg', () => {
+    const { ctx, fills } = tintCtx()
+    const near: ScreenGlyph = { contours: [[{ x: 0, y: 0 }, { x: 1, y: 0 }]], depth: -100 }
+    const far: ScreenGlyph = { contours: [[{ x: 0, y: 0 }, { x: 1, y: 0 }]], depth: 100 }
+    renderFrame(ctx, 10, 10, [near, far], { mode: 'fill', weight: 1, fg: '#000000', bg: '#ffffff', shade: '#888888', depthTint: 1 })
+    expect(fills[0]).toBe('rgb(136,136,136)')
+    expect(fills[1]).toBe('rgb(0,0,0)')
+  })
+
+  it('leaves color uniform when tint is 0', () => {
+    const { ctx, fills } = tintCtx()
+    const near: ScreenGlyph = { contours: [[{ x: 0, y: 0 }, { x: 1, y: 0 }]], depth: -100 }
+    const far: ScreenGlyph = { contours: [[{ x: 0, y: 0 }, { x: 1, y: 0 }]], depth: 100 }
+    renderFrame(ctx, 10, 10, [near, far], { mode: 'fill', weight: 1, fg: '#000000', bg: '#ffffff', shade: '#888888', depthTint: 0 })
+    expect(fills).toEqual(['#000000', '#000000'])
   })
 })
 
