@@ -13,12 +13,6 @@
       <button id="export-frames">Export frames</button>
       <span id="export-status"></span>
     </header>
-    <aside id="panel">
-      <div class="panel-title">CONTROLS</div>
-      <div id="mode-controls"></div>
-      <div class="panel-title">CAMERA</div>
-      <div id="camera-controls"></div>
-    </aside>
     <section id="info">
       <h1>SPACE TYPE</h1>
       <div class="sub">_kinetic type generator</div>
@@ -27,16 +21,7 @@
       <div class="row">
         <select id="font-select"></select>
         <label class="upload">UPLOAD<input id="font-file" type="file" accept=".ttf,.otf,.woff" /></label>
-      </div>
-      <div class="row">
-        <label class="mini">FG <input id="fg" type="color" /></label>
-        <label class="mini">BG <input id="bg" type="color" /></label>
         <button id="invert">INVERT</button>
-        <select id="render-mode">
-          <option value="fill">fill</option>
-          <option value="stroke">stroke</option>
-        </select>
-        <input id="weight" type="range" min="0.5" max="8" step="0.1" title="stroke weight" />
       </div>
       <div id="font-error" class="error"></div>
     </section>

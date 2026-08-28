@@ -9,7 +9,7 @@ import { depthfield } from './modes/depthfield'
 import { extrusion } from './modes/extrusion'
 import { lissajous } from './modes/lissajous'
 import { defaultParams, type Mode } from './modes/mode'
-import { buildControls, syncControls } from './ui/controls'
+import { mountDialPanel } from './ui/dialpanel'
 import { FONTS, fontById } from './ui/fonts'
 import { decodeState, encodeState, type AppState } from './state'
 import { downloadBlob, renderPNG, type DrawScene } from './export/png'
@@ -128,24 +128,7 @@ requestAnimationFrame(tick)
 
 // ---------- UI wiring ----------
 
-const CAMERA_DEFS = [
-  { kind: 'range' as const, key: 'rotX', label: 'Rotate X', min: -1.6, max: 1.6, step: 0.01, def: 0.14 },
-  { kind: 'range' as const, key: 'rotY', label: 'Rotate Y', min: -3.14, max: 3.14, step: 0.01, def: 0 },
-  { kind: 'range' as const, key: 'rotZ', label: 'Rotate Z', min: -1.6, max: 1.6, step: 0.01, def: 0 },
-  { kind: 'range' as const, key: 'zoom', label: 'Zoom', min: 0.2, max: 3, step: 0.01, def: 1 },
-]
-
-function rebuildPanel(): void {
-  buildControls($('#mode-controls'), mode().params, params(), scheduleHash)
-  buildControls($('#camera-controls'), CAMERA_DEFS, state.camera as unknown as Params, scheduleHash)
-}
-
-const fgEl = $<HTMLInputElement>('#fg')
-const bgEl = $<HTMLInputElement>('#bg')
-function syncColorInputs(): void {
-  fgEl.value = state.fg
-  bgEl.value = state.bg
-}
+const dial = mountDialPanel(state, mode(), scheduleHash)
 
 function rebuildPresets(): void {
   const box = $('#presets')
@@ -158,8 +141,7 @@ function rebuildPresets(): void {
       Object.assign(params(), rest)
       if (typeof fg === 'string') state.fg = fg
       if (typeof bg === 'string') state.bg = bg
-      syncColorInputs()
-      syncControls($('#mode-controls'), params())
+      dial.apply()
       scheduleHash()
     })
     box.appendChild(b)
@@ -176,7 +158,7 @@ function rebuildModeTabs(): void {
     b.addEventListener('click', () => {
       state.mode = m.id
       reshape()
-      rebuildPanel()
+      dial.setMode(mode())
       rebuildPresets()
       rebuildModeTabs()
       scheduleHash()
@@ -242,31 +224,9 @@ $<HTMLInputElement>('#font-file').addEventListener('change', async e => {
   }
 })
 
-syncColorInputs()
-fgEl.addEventListener('input', () => {
-  state.fg = fgEl.value
-  scheduleHash()
-})
-bgEl.addEventListener('input', () => {
-  state.bg = bgEl.value
-  scheduleHash()
-})
 $('#invert').addEventListener('click', () => {
   ;[state.fg, state.bg] = [state.bg, state.fg]
-  syncColorInputs()
-  scheduleHash()
-})
-
-const renderModeEl = $<HTMLSelectElement>('#render-mode')
-renderModeEl.value = state.renderMode
-renderModeEl.addEventListener('change', () => {
-  state.renderMode = renderModeEl.value as 'fill' | 'stroke'
-  scheduleHash()
-})
-const weightEl = $<HTMLInputElement>('#weight')
-weightEl.value = String(state.weight)
-weightEl.addEventListener('input', () => {
-  state.weight = Number(weightEl.value)
+  dial.apply()
   scheduleHash()
 })
 
@@ -306,7 +266,6 @@ $('#export-frames').addEventListener('click', async () => {
   }
 })
 
-rebuildPanel()
 rebuildPresets()
 rebuildModeTabs()
 loadFont(state.fontId)
