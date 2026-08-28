@@ -20,6 +20,8 @@ export const depthfield: Mode = {
     { name: 'Poster', values: { grid: true, drift: 0, depth: 1400, spreadX: 420, spreadY: 520, scale: 1.6, fg: '#ffffff', bg: '#000000' } },
     { name: 'Drift', values: { grid: false, drift: 0.8, depth: 2400, spreadX: 500, spreadY: 400, scale: 1.4, fg: '#ffffff', bg: '#000000' } },
     { name: 'Swarm', values: { grid: false, drift: 1.6, depth: 3600, spreadX: 900, spreadY: 800, scale: 1, fg: '#ffffff', bg: '#000000' } },
+    { name: 'Tunnel', values: { grid: false, drift: 2.4, depth: 4000, spreadX: 260, spreadY: 260, scale: 2.2, fg: '#ffffff', bg: '#000000' } },
+    { name: 'Constellation', values: { grid: false, drift: 0.15, depth: 1200, spreadX: 1100, spreadY: 700, scale: 0.6, fg: '#ffffff', bg: '#000000' } },
   ],
   build(lines, p, t) {
     const letters: ShapedGlyph[] = []

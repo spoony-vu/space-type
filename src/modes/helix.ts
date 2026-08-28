@@ -21,6 +21,8 @@ export const helix: Mode = {
     { name: 'Spring', values: { radius: 280, turns: 3, pitch: 240, spin: 0.35, waveCount: 0, waveAmp: 0, fg: '#111111', bg: '#ffffff' } },
     { name: 'Tornado', values: { radius: 200, turns: 6, pitch: 150, spin: 0.7, waveCount: 4, waveAmp: 40, ripple: 0.3, fg: '#111111', bg: '#ffffff' } },
     { name: 'Ribbon', values: { radius: 420, turns: 1.5, pitch: 420, spin: 0.2, yScale: 1.4, fg: '#111111', bg: '#ffffff' } },
+    { name: 'Drill', values: { radius: 150, turns: 7, pitch: 130, spin: 0.9, waveCount: 0, waveAmp: 0, ripple: 0, xScale: 0.9, yScale: 0.8, fg: '#ffffff', bg: '#000000' } },
+    { name: 'Serpent', values: { radius: 330, turns: 2.5, pitch: 300, spin: 0.3, waveCount: 6, waveAmp: 60, waveSpeed: 1.6, ripple: 0.18, yScale: 1.1, fg: '#111111', bg: '#ffffff' } },
   ],
   build(lines, p, t) {
     const line = lines[0]

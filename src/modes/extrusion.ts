@@ -20,6 +20,8 @@ export const extrusion: Mode = {
     { name: 'Filmabend', values: { depth: 12000, steps: 56, vpX: 60, vpY: 0, scale: 1.15, lineGap: 640, breathe: 0, fg: '#ffffff', bg: '#000000' } },
     { name: 'Pulse', values: { depth: 9000, steps: 48, vpX: 0, vpY: 0, scale: 1, breathe: 0.5, breatheSpeed: 0.9, fg: '#ffffff', bg: '#000000' } },
     { name: 'Corner pull', values: { depth: 15000, steps: 60, vpX: 420, vpY: -320, scale: 0.9, breathe: 0.15, breatheSpeed: 0.5, fg: '#ffffff', bg: '#000000' } },
+    { name: 'Shallow slab', values: { depth: 2600, steps: 40, vpX: -180, vpY: 140, scale: 1.05, lineGap: 480, breathe: 0, fg: '#111111', bg: '#ffffff' } },
+    { name: 'Collapse', values: { depth: 18000, steps: 72, vpX: 0, vpY: 60, scale: 1.3, lineGap: 700, breathe: 0.7, breatheSpeed: 1.4, fg: '#ffffff', bg: '#000000' } },
   ],
   build(lines, p, t) {
     const real = lines.filter(l => l.width > 0)

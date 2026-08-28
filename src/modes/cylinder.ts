@@ -24,6 +24,9 @@ export const cylinder: Mode = {
     { name: 'Crown', values: { radius: 320, rings: 1, spin: 0.25, waveCount: 6, waveAmp: 110, waveSpeed: 1.2, ripple: 0, fg: '#111111', bg: '#ffffff' } },
     { name: 'Jellyfish', values: { radius: 280, rings: 2, ringGap: 220, spin: 0.4, waveCount: 3, waveAmp: 150, waveSpeed: 0.8, ripple: 0.22, fg: '#111111', bg: '#ffffff' } },
     { name: 'Zebra', values: { radius: 340, copies: 2, rings: 7, ringGap: 95, ringTwist: 0.35, spin: 0.3, waveCount: 0, waveAmp: 0, yScale: 0.8, fg: '#111111', bg: '#ffffff' } },
+    { name: 'Column', values: { radius: 210, copies: 1, rings: 9, ringGap: 120, ringTwist: 0.6, spin: 0.45, waveCount: 0, waveAmp: 0, ripple: 0, xScale: 1, yScale: 0.7, fg: '#ffffff', bg: '#000000' } },
+    { name: 'Flag', values: { radius: 420, copies: 1, rings: 1, spin: 0.2, waveCount: 8, waveAmp: 55, waveSpeed: 2.2, ripple: 0.08, xScale: 1.2, yScale: 1.3, fg: '#111111', bg: '#ffffff' } },
+    { name: 'Vortex', values: { radius: 300, copies: 3, rings: 5, ringGap: 150, ringTwist: 1.2, spin: 0.6, waveCount: 2, waveAmp: 70, waveSpeed: 1, ripple: 0.3, yScale: 0.9, fg: '#ffffff', bg: '#000000' } },
   ],
   build(lines, p, t) {
     const line = lines[0]
