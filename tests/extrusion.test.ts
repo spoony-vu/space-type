@@ -5,6 +5,7 @@ import type { ShapedLine } from '../src/engine/font'
 
 const line: ShapedLine = {
   width: 100,
+  size: 160,
   glyphs: [{ char: 'F', x: 0, width: 100, contours: [[{ x: 0, y: -80 }, { x: 80, y: -80 }, { x: 80, y: 0 }]] }],
 }
 

@@ -5,11 +5,13 @@ export interface AppState {
   text: string
   caption: string
   fontId: string
+  fontSize: number
   fg: string
   bg: string
   shade: string
   depthTint: number
-  renderMode: 'fill' | 'stroke'
+  renderMode: 'fill' | 'stroke' | 'both'
+  split: number
   weight: number
   camera: { rotX: number; rotY: number; rotZ: number; zoom: number }
   params: Record<string, Params>

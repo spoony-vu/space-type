@@ -1,5 +1,4 @@
 import { mulberry32 } from '../engine/rng'
-import { FONT_SIZE } from '../engine/types'
 import type { ShapedGlyph } from '../engine/font'
 import type { Mode } from './mode'
 
@@ -27,6 +26,7 @@ export const depthfield: Mode = {
     const letters: ShapedGlyph[] = []
     for (const line of lines) for (const g of line.glyphs) if (g.contours.length) letters.push(g)
     if (!letters.length) return []
+    const emSize = lines[0].size
     const rand = mulberry32(Math.round(p.seed as number))
     const D = p.depth as number
     const scale = p.scale as number
@@ -61,7 +61,7 @@ export const depthfield: Mode = {
       const contours = g.contours.map(c =>
         c.map(pt => ({
           x: px + (pt.x - cx) * scale,
-          y: py + (pt.y + FONT_SIZE * 0.35) * scale,
+          y: py + (pt.y + emSize * 0.35) * scale,
           z,
         })),
       )

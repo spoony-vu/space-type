@@ -37,6 +37,6 @@ describe('FontStore', () => {
   })
 
   it('shapes an empty string to width 0', () => {
-    expect(store.shapeLine('', 160)).toEqual({ glyphs: [], width: 0 })
+    expect(store.shapeLine('', 160)).toEqual({ glyphs: [], width: 0, size: 160 })
   })
 })

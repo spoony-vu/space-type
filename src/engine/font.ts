@@ -11,6 +11,7 @@ export interface ShapedGlyph {
 export interface ShapedLine {
   glyphs: ShapedGlyph[]
   width: number
+  size: number
 }
 
 export class FontStore {
@@ -34,7 +35,7 @@ export class FontStore {
 
   shapeLine(text: string, size: number): ShapedLine {
     const font = this.font
-    if (!font || !text) return { glyphs: [], width: 0 }
+    if (!font || !text) return { glyphs: [], width: 0, size }
     const scale = size / font.unitsPerEm
     const glyphs: ShapedGlyph[] = []
     let x = 0
@@ -50,6 +51,6 @@ export class FontStore {
       glyphs.push({ char, x, width, contours })
       x += width
     }
-    return { glyphs, width: x }
+    return { glyphs, width: x, size }
   }
 }

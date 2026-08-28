@@ -9,12 +9,13 @@ export interface ScreenGlyph {
 }
 
 export interface RenderStyle {
-  mode: 'fill' | 'stroke'
+  mode: 'fill' | 'stroke' | 'both'
   weight: number
   fg: string
   bg: string
   shade: string
   depthTint: number
+  split: number
 }
 
 export function mixHex(a: string, b: string, t: number): string {
@@ -56,8 +57,8 @@ export function renderFrame(ctx: CanvasRenderingContext2D, w: number, h: number,
   const range = maxD - minD
   const tint = style.depthTint ?? 0
   for (const g of sorted) {
-    const color =
-      tint > 0 && range > 1e-6 ? mixHex(style.fg, style.shade, ((g.depth - minD) / range) * tint) : style.fg
+    const t = range > 1e-6 ? (g.depth - minD) / range : 0
+    const color = tint > 0 && range > 1e-6 ? mixHex(style.fg, style.shade, t * tint) : style.fg
     ctx.beginPath()
     for (const c of g.contours) {
       if (c.length < 2) continue
@@ -65,14 +66,15 @@ export function renderFrame(ctx: CanvasRenderingContext2D, w: number, h: number,
       for (let i = 1; i < c.length; i++) ctx.lineTo(c[i].x, c[i].y)
       ctx.closePath()
     }
-    if (style.mode === 'fill') {
-      ctx.fillStyle = color
-      ctx.fill('evenodd')
-    } else {
+    const stroke = style.mode === 'stroke' || (style.mode === 'both' && t > style.split)
+    if (stroke) {
       ctx.strokeStyle = color
       ctx.lineWidth = style.weight
       ctx.lineJoin = 'round'
       ctx.stroke()
+    } else {
+      ctx.fillStyle = color
+      ctx.fill('evenodd')
     }
   }
 }

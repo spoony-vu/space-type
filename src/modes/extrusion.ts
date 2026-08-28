@@ -1,4 +1,4 @@
-import { CAM_DIST, FONT_SIZE } from '../engine/types'
+import { CAM_DIST } from '../engine/types'
 import type { Glyph3D } from '../engine/renderer'
 import type { Mode } from './mode'
 
@@ -33,7 +33,7 @@ export const extrusion: Mode = {
     const sc = p.scale as number
     const out: Glyph3D[] = []
     real.forEach((line, li) => {
-      const yBase = (li - (real.length - 1) / 2) * (p.lineGap as number) + FONT_SIZE * 0.35
+      const yBase = (li - (real.length - 1) / 2) * (p.lineGap as number) + line.size * 0.35
       const kFar = CAM_DIST / (CAM_DIST + Math.max(D, 0))
       for (const g of line.glyphs) {
         if (!g.contours.length) continue

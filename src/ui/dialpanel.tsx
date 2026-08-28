@@ -20,6 +20,7 @@ export function buildConfig(mode: Mode, modes: Mode[], state: AppState): DialCon
     options: FONTS.map(f => ({ value: f.id, label: f.name })),
     default: FONTS.some(f => f.id === state.fontId) ? state.fontId : FONTS[0].id,
   }
+  cfg.Size = [state.fontSize, 40, 400, 1]
   cfg['Upload font'] = { type: 'action' }
   for (const d of mode.params) {
     cfg[d.label] =
@@ -38,7 +39,16 @@ export function buildConfig(mode: Mode, modes: Mode[], state: AppState): DialCon
     Paper: { type: 'color', default: state.bg },
     Shade: { type: 'color', default: state.shade },
     'Depth tint': [state.depthTint, 0, 1, 0.01],
-    Render: { type: 'select', options: ['fill', 'stroke'], default: state.renderMode },
+    Render: {
+      type: 'select',
+      options: [
+        { value: 'fill', label: 'Fill' },
+        { value: 'stroke', label: 'Stroke' },
+        { value: 'both', label: 'Fill front / stroke back' },
+      ],
+      default: state.renderMode,
+    },
+    Split: [state.split, 0, 1, 0.01],
     Weight: [state.weight, 0.5, 8, 0.1],
     Invert: { type: 'action' },
   }
@@ -59,6 +69,7 @@ export function syncFromDial(v: Record<string, any>, mode: Mode, state: AppState
   if (typeof v.Text === 'string') state.text = v.Text
   if (typeof v.Caption === 'string') state.caption = v.Caption
   if (typeof v.Font === 'string') state.fontId = v.Font
+  if (typeof v.Size === 'number') state.fontSize = v.Size
   const p = state.params[mode.id]
   for (const d of mode.params) {
     if (v[d.label] !== undefined) p[d.key] = v[d.label]
@@ -74,6 +85,7 @@ export function syncFromDial(v: Record<string, any>, mode: Mode, state: AppState
   if (st.Shade !== undefined) state.shade = st.Shade
   if (st['Depth tint'] !== undefined) state.depthTint = st['Depth tint']
   if (st.Render !== undefined) state.renderMode = st.Render
+  if (st.Split !== undefined) state.split = st.Split
   if (st.Weight !== undefined) state.weight = st.Weight
 }
 
@@ -83,6 +95,7 @@ export function buildUpdates(mode: Mode, state: AppState): Record<string, unknow
     Mode: mode.id,
     Text: state.text,
     Font: state.fontId,
+    Size: state.fontSize,
   }
   if (mode.id === 'depthfield') u.Caption = state.caption
   for (const d of mode.params) {
@@ -100,6 +113,7 @@ export function buildUpdates(mode: Mode, state: AppState): Record<string, unknow
     Shade: state.shade,
     'Depth tint': state.depthTint,
     Render: state.renderMode,
+    Split: state.split,
     Weight: state.weight,
   }
   return u

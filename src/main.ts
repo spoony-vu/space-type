@@ -2,7 +2,7 @@ import './style.css'
 import { defaultCamera } from './engine/camera'
 import { FontStore, type ShapedLine } from './engine/font'
 import { decimate, projectGlyphs, renderFrame, type RenderStyle } from './engine/renderer'
-import { FONT_SIZE, type Params } from './engine/types'
+import type { Params } from './engine/types'
 import { cylinder } from './modes/cylinder'
 import { helix } from './modes/helix'
 import { depthfield } from './modes/depthfield'
@@ -32,11 +32,13 @@ function freshState(): AppState {
     text: 'TYPE-SOMETHING',
     caption: '',
     fontId: 'archivo-black',
+    fontSize: 160,
     fg: '#111111',
     bg: '#ffffff',
     shade: '#9a9a9a',
     depthTint: 0.55,
     renderMode: 'fill',
+    split: 0.5,
     weight: 2,
     camera: { rotX: 0.14, rotY: 0, rotZ: 0, zoom: 1 },
     params,
@@ -64,11 +66,11 @@ function reshape(): void {
     shaped = text
       .split(/[\n|]/)
       .filter(l => l.trim())
-      .map(l => fontStore.shapeLine(l, FONT_SIZE))
+      .map(l => fontStore.shapeLine(l, state.fontSize))
   } else {
-    shaped = [fontStore.shapeLine(text.replace(/[\n|]+/g, '//'), FONT_SIZE)]
+    shaped = [fontStore.shapeLine(text.replace(/[\n|]+/g, '//'), state.fontSize)]
   }
-  shapedCaption = state.caption.trim() ? fontStore.shapeLine(state.caption.trim(), FONT_SIZE * 0.14) : null
+  shapedCaption = state.caption.trim() ? fontStore.shapeLine(state.caption.trim(), state.fontSize * 0.14) : null
 }
 
 function pushHash(): void {
@@ -91,13 +93,14 @@ const drawScene: DrawScene = (c, w, h, time) => {
     bg: state.bg,
     shade: state.shade,
     depthTint: state.depthTint,
+    split: state.split,
   }
   const glyphs = decimate(mode().build(shaped, params(), time), MAX_POINTS)
   renderFrame(c, w, h, projectGlyphs(glyphs, cam, w / 2, h / 2), style)
   if (state.mode === 'depthfield' && shapedCaption) {
     const caption = shapedCaption
     const flat = caption.glyphs.map(g => ({
-      contours: g.contours.map(ct => ct.map(pt => ({ x: g.x + pt.x - caption.width / 2, y: pt.y + FONT_SIZE * 0.05, z: 0 }))),
+      contours: g.contours.map(ct => ct.map(pt => ({ x: g.x + pt.x - caption.width / 2, y: pt.y + caption.size * 0.35, z: 0 }))),
     }))
     const screen = projectGlyphs(flat, cam, w / 2, h / 2)
     for (const g of screen) {
@@ -155,6 +158,7 @@ async function loadFont(id: string): Promise<void> {
 
 let shownMode = state.mode
 let shownFontId = state.fontId
+let shownFontSize = state.fontSize
 let shownText = state.text
 let shownCaption = state.caption
 
@@ -168,9 +172,10 @@ function onDialChange(): void {
     shownFontId = state.fontId
     loadFont(state.fontId)
   }
-  if (state.text !== shownText || state.caption !== shownCaption) {
+  if (state.text !== shownText || state.caption !== shownCaption || state.fontSize !== shownFontSize) {
     shownText = state.text
     shownCaption = state.caption
+    shownFontSize = state.fontSize
     reshape()
   }
   scheduleHash()

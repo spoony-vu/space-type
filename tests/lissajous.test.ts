@@ -5,6 +5,7 @@ import type { ShapedLine } from '../src/engine/font'
 
 const line: ShapedLine = {
   width: 100,
+  size: 160,
   glyphs: [
     { char: 'A', x: 0, width: 50, contours: [[{ x: 0, y: 0 }, { x: 40, y: -40 }]] },
     { char: 'B', x: 50, width: 50, contours: [[{ x: 0, y: 0 }, { x: 40, y: -40 }]] },
@@ -33,6 +34,7 @@ describe('lissajous', () => {
   it('closes the loop: u=0 and u=1 land on the same curve point', () => {
     const closed: ShapedLine = {
       width: 100,
+      size: 160,
       glyphs: [
         { char: 'A', x: 0, width: 100, contours: [[{ x: 0, y: 0 }]] },
         { char: 'B', x: 100, width: 0, contours: [[{ x: 0, y: 0 }]] },

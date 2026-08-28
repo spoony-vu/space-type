@@ -12,11 +12,13 @@ function makeState(): AppState {
     text: 'HI',
     caption: '',
     fontId: 'archivo-black',
+    fontSize: 160,
     fg: '#111111',
     bg: '#ffffff',
     shade: '#9a9a9a',
     depthTint: 0.55,
     renderMode: 'fill',
+    split: 0.5,
     weight: 2,
     camera: { rotX: 0.14, rotY: 0, rotZ: 0, zoom: 1 },
     params: { cylinder: { radius: 300, spin: 0.35 }, depthfield: { seed: 1 } },
@@ -30,6 +32,7 @@ describe('buildConfig', () => {
     expect(cfg.Mode.default).toBe('cylinder')
     expect(cfg.Text).toMatchObject({ type: 'text', default: 'HI' })
     expect(cfg.Font.type).toBe('select')
+    expect(cfg.Size).toEqual([160, 40, 400, 1])
     expect(cfg['Upload font']).toEqual({ type: 'action' })
     expect(cfg.Radius).toEqual([300, 80, 700, 1])
     expect(cfg.Camera['Rotate X']).toEqual([0.14, -1.6, 1.6, 0.01])
